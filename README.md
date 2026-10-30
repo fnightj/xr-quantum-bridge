@@ -1,236 +1,61 @@
-\# xr-quantum-bridge
+# xr-quantum-bridge
 
+A small experiment connecting a Unity scene to a Python backend that simulates quantum measurement outcomes.
 
+## What it actually does
 
-A minimal working prototype for my PhD research idea:
+Click a cube in Unity → HTTP request goes to a local Flask server → server returns "0" or "1" (randomly, standing in for qubit collapse) → cube changes color (red for |0⟩, blue for |1⟩) → each click gets written to a CSV log with timestamp, click number, result, and server info.
 
-\*\*"Collapse as Interaction – Quantum computation as a material for immersive and participatory art."\*\*
+That's the whole loop. One interaction, one measurement, one visible result.
 
+## Project structure
 
+- `unity_client/` — Unity project (2022 LTS). Two main scripts: `QuantumClicker.cs` handles the click→request→color change, `CollapseLogger.cs` writes `collapse_log.csv`.
+- `python_server/` — Flask app, single endpoint `GET /measure`, currently returns random 0/1. Swap-in point for Qiskit Aer later.
+- `docs/` — rough design notes and paper references.
 
-This repo is the smallest testable piece of that idea:
+## How to run it
 
-\*\*a single quantum measurement, triggered by a physical interaction, that cannot be undone.\*\*
+1. `cd python_server && py server.py` (server runs on `http://localhost:5050`)
+2. Open `unity_client/` in Unity Hub, open the scene, hit Play
+3. Click the cube, watch it change color, check `collapse_log.csv`
 
+## Current status
 
+Built as a minimal proof-of-concept for the xQAP application. The "quantum" part is simulated with `random` right now — the point was to get the full interaction loop working first (Unity → HTTP → server → response → visual feedback → logging). Replacing the random return with an actual Qiskit circuit is the immediate next step.
 
-\## What it actually does
+## About
 
+Built by [Jing], lecturer in Real-time VR Technology and Online Game Development, exploring the intersection of immersive interaction and quantum computing concepts.
 
+---
 
-1\. You press \*\*Play\*\* in Unity and click the cube in the scene.
+# xr-quantum-bridge（中文版）
 
-2\. Unity sends an HTTP request to a local Python server (`localhost:5050/measure`).
+把 Unity 里的交互和"量子测量"概念串起来的一个小实验。
 
-3\. The server returns a measurement result: `"0"` or `"1"`.
+## 实际做了什么
 
-4\. The cube changes color — \*\*red for |0⟩, blue for |1⟩\*\*.
+在 Unity 里点一下立方体 → 发 HTTP 请求到本地 Flask 服务器 → 服务器随机返回 "0" 或 "1"（模拟量子坍缩）→ 立方体变颜色（红=|0⟩，蓝=|1⟩）→ 每次点击写一条记录到 CSV（时间戳、点击序号、结果、服务器信息）。
 
-5\. The event is appended to a log file (`collapse\\\_log.csv`) with a timestamp.
+就这一个闭环。一次交互，一次"测量"，一个看得见的反馈。
 
+## 目录结构
 
+- `unity_client/` — Unity 工程（2022 LTS）。核心就两个脚本：`QuantumClicker.cs` 管点击→请求→变色，`CollapseLogger.cs` 管写日志。
+- `python_server/` — Flask 服务，一个接口 `GET /measure`，目前用 random 返回 0/1。后面换成 Qiskit Aer 电路的地方已经留好了。
+- `docs/` — 随手记的设计想法和参考论文。
 
-Each click is treated as a \*\*collapse event\*\*: once the result is in, it is not rolled back.
+## 怎么跑
 
-That is the whole point of the project.
+1. `cd python_server && py server.py`（默认跑在 localhost:5050）
+2. Unity Hub 打开 `unity_client/`，进场景，点 Play
+3. 点方块，看变色，查 `collapse_log.csv`
 
+## 目前状态
 
+这是为 xQAP 申请做的最小可行性验证。量子部分目前是 random 模拟——先把完整交互链路跑通（Unity → HTTP → 服务器 → 返回 → 视觉反馈 → 记录），再换真电路。下一步就是接 Qiskit。
 
-> ⚠️ Status: \\\*\\\*working prototype, built and tested on 2026-10-30\\\*\\\*.
+## 关于
 
-> Simulator-only, single-user, no audio, no shot pooling. See "What's next" below.
-
-
-
-\## Why start here
-
-
-
-The broader research frames quantum measurement as an \*interaction material\*
-
-(Prepare → Collapse → Record).
-
-This demo implements exactly that loop, at the smallest possible scale:
-
-one qubit, one click, one irreversible result.
-
-
-
-\## Repository structure
-
-
-
-xr-quantum-bridge/
-
-├── python\_server/
-
-│   ├── server.py           # Flask server, one endpoint: GET /measure
-
-│   └── requirements.txt    # flask
-
-├── Assets/
-
-│   ├── Scripts/
-
-│   │   ├── QuantumClicker.cs    # click → HTTP request → recolor cube
-
-│   │   └── CollapseLogger.cs    # writes every collapse to collapse\_log.csv
-
-│   └── Scenes/
-
-│       └── ClickToCollapse.unity # one cube, one click
-
-└── README.md               # this file
-
-
-
-Only files that exist are listed above.
-
-
-
-\## How to run
-
-
-
-\### 1. Python server
-
-
-
-You need Python 3.10+. On this machine `py` is the launcher.
-
-
-
-&#x20;   cd python\_server
-
-&#x20;   py -m pip install -r requirements.txt
-
-&#x20;   py server.py
-
-
-
-You should see:
-
-
-
-&#x20;   Quantum Bridge server running on http://localhost:5050
-
-&#x20;    \* Running on http://127.0.0.1:5050
-
-
-
-\*\*Keep this window open.\*\* Don't close it.
-
-
-
-> Test it in a browser: http://localhost:5050/measure
-
-> You should get something like `{"result":"0"}` or `{"result":"1"}`.
-
-
-
-\### 2. Unity
-
-
-
-\- Open this folder as a Unity project (2022 LTS or newer).
-
-\- Open the `ClickToCollapse` scene.
-
-\- Select the \*\*Cube\*\* in the Hierarchy.
-
-\- In the Inspector, under the \*\*Quantum Clicker\*\* component,
-
-&#x20; drag a Material into the \*\*Cube Material\*\* slot.
-
-&#x20; (If you skip this, Unity prints an `UnassignedReferenceException`.)
-
-\- Press \*\*Play ▶\*\*, click the cube.
-
-
-
-Expected result: the cube flips red/blue on each click.
-
-
-
-\### 3. Check the log
-
-
-
-The log is written to the Unity persistent data path as `collapse\\\_log.csv`.
-
-Each line records `timestamp, click\\\_number, result, server`.
-
-This is the \*\*Record\*\* step of Prepare → Collapse → Record.
-
-
-
-\## How it falls short (honest limitations)
-
-
-
-\- The server currently uses `random.choice`, so the result is \*quantum-like\*,
-
-&#x20; not a real quantum measurement yet.
-
-\- No real IBM Quantum backend, no latency buffering, no multi-user sync,
-
-&#x20; no sound, no mapping grammar, no extra scenes.
-
-\- Tested only in the Unity Editor on Windows, with the server on the same machine.
-
-
-
-I'm keeping this list visible on purpose: the point of this repo is to
-
-grow one honest layer at a time.
-
-
-
-\## What's next
-
-
-
-1\. Replace `random.choice` with a real Qiskit Aer circuit
-
-&#x20;  (`QCircuit.h(0); measure(0,0); shots=1`) — same endpoint, no Unity changes.
-
-2\. Add a second cube wired to the same result, to sketch entanglement visually.
-
-3\. Only after (1) and (2) feel solid: sound mapping, then a shot-pool buffer
-
-&#x20;  to hide simulator latency.
-
-
-
-\## Relation to the research proposal
-
-
-
-| RP concept | What exists here |
-
-|---|---|
-
-| Measurement as an interaction event | Click → HTTP request → result |
-
-| Collapse (irreversible) | One result per click, never reversed |
-
-| Record | `collapse\\\_log.csv` |
-
-| Spatial mapping | Cube color (red/blue) |
-
-
-
-The three artworks in the RP (Collapse Room, Entanglement Room,
-
-Growing Circuit) are future work and are \*\*not\*\* in this repository yet.
-
-
-
-\## Author
-
-
-
-Jing Fu — October 2026
-
-Part of an early-stage PhD inquiry into quantum measurement as an artistic material.
-
+作者 [符婧]，高校讲师（教实时 VR 技术和网络游戏开发），在探索沉浸式交互和量子计算的交叉方向。
